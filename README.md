@@ -21,7 +21,7 @@ A secure, transparent, and decentralized voting platform built with Node.js, MyS
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Codesofshravani/VoteSecure.git
    cd VoteSecure
    ```
 
