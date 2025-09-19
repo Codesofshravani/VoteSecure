@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VoteSecure - Voter Authentication</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="stylesheet" href="../css/voter-auth.css" />
+  </head>
+  <body>
+    <!-- Back Button -->
+    <a href="role-select.html" class="back-btn">←</a>
+
+    <div class="page-container">
+      <div class="auth-container">
+        <!-- Left Info Section -->
+        <div class="info-section">
+          <h2>Voter Portal</h2>
+          <p class="subtitle">Your voice matters - vote securely and confidentially</p>
+          
+          <ul class="features">
+            <li>View active elections</li>
+            <li>Cast secure votes</li>
+            <li>Track voting history</li>
+            <li>Real-time results</li>
+            <li>Anonymous voting</li>
+          </ul>
+          
+          <p class="info-note">
+            Your vote is private and secure
+          </p>
+        </div>
+
+        <!-- Right Form Section -->
+        <div class="form-section">
+          <div class="form-header">
+            <h3>Welcome Voter</h3>
+            <p>Access your voting dashboard</p>
+          </div>
+
+          <!-- Tabs -->
+          <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('login')">
+              Sign In
+            </button>
+            <button class="tab-btn" onclick="showTab('register')">
+              Sign Up
+            </button>
+          </div>
+
+          <!-- Login Form -->
+          <form id="login-form" class="form active">
+            <div class="form-group">
+              <label for="login-email">Email Address</label>
+              <input 
+                type="email" 
+                id="login-email"
+                placeholder="Enter your email" 
+                required 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="login-password">Password</label>
+              <div class="password-field">
+                <input 
+                  type="password" 
+                  id="login-password"
+                  placeholder="Enter your password" 
+                  required 
+                />
+                <button type="button" class="password-toggle" onclick="togglePassword('login-password')">
+                  👁️
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="submit-btn">
+              Access Voting Dashboard
+            </button>
+          </form>
+
+          <!-- Register Form -->
+          <form id="register-form" class="form">
+            <div class="form-group">
+              <label for="register-name">Full Name</label>
+              <input 
+                type="text" 
+                id="register-name"
+                placeholder="Enter your full name" 
+                required 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="register-email">Email Address</label>
+              <input 
+                type="email" 
+                id="register-email"
+                placeholder="Enter your email" 
+                required 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="register-password">Password</label>
+              <div class="password-field">
+                <input 
+                  type="password" 
+                  id="register-password"
+                  placeholder="Create a strong password" 
+                  required 
+                />
+                <button type="button" class="password-toggle" onclick="togglePassword('register-password')">
+                  👁️
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="submit-btn">
+              Create Voter Account
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+      function showTab(tab) {
+        document.getElementById('login-form').classList.remove('active');
+        document.getElementById('register-form').classList.remove('active');
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        
+        if (tab === 'login') {
+          document.getElementById('login-form').classList.add('active');
+          document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        } else {
+          document.getElementById('register-form').classList.add('active');
+          document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        }
+      }
+
+      // Voter Login
+      document.getElementById('login-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        
+        if (!email || !password) {
+          showMessage('Please fill in all fields', 'error');
+          return;
+        }
+        
+        try {
+          const submitBtn = e.target.querySelector('.submit-btn');
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Signing In...';
+          
+          const response = await api.login({ email, password });
+          
+          if (response.user.role === 'voter') {
+            showMessage('Login successful!', 'success');
+            setTimeout(() => {
+              window.location.href = 'voter-dashboard.html';
+            }, 1000);
+          } else {
+            showMessage('Voter access required', 'error');
+          }
+        } catch (error) {
+          showMessage(error.message, 'error');
+        } finally {
+          const submitBtn = e.target.querySelector('.submit-btn');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Access Voting Dashboard';
+        }
+      });
+
+      // Voter Registration
+      document.getElementById('register-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const name = document.getElementById('register-name').value.trim();
+        const email = document.getElementById('register-email').value.trim();
+        const password = document.getElementById('register-password').value;
+        
+        // Basic validation
+        if (name.length < 2) {
+          showMessage('Name must be at least 2 characters long', 'error');
+          return;
+        }
+        
+        if (password.length < 6) {
+          showMessage('Password must be at least 6 characters long', 'error');
+          return;
+        }
+        
+        try {
+          const submitBtn = e.target.querySelector('.submit-btn');
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Creating Account...';
+          
+          await api.register({ name, email, password, role: 'voter' });
+          showMessage('Registration successful! Please login.', 'success');
+          
+          // Clear form and switch to login
+          document.getElementById('register-form').reset();
+          showTab('login');
+          
+        } catch (error) {
+          showMessage(error.message, 'error');
+        } finally {
+          const submitBtn = e.target.querySelector('.submit-btn');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Create Voter Account';
+        }
+      });
+      
+      // Password visibility toggle
+      function togglePassword(fieldId) {
+        const field = document.getElementById(fieldId);
+        const button = field.parentElement.querySelector('.password-toggle');
+        
+        if (field.type === 'password') {
+          field.type = 'text';
+          button.innerHTML = '🙈';
+          button.title = 'Hide password';
+        } else {
+          field.type = 'password';
+          button.innerHTML = '👁️';
+          button.title = 'Show password';
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>VoteSecure - Profile</title>
+    <link rel="stylesheet" href="../css/profile.css" />
+  </head>
+  <body>
+    <div class="page-container">
+      <div class="profile-card">
+        <h2>Your Profile</h2>
+
+        <div class="profile-grid">
+          <!-- Left: Avatar + basic info -->
+          <div class="left">
+            <div class="avatar-wrap">
+              <img
+                id="avatarPreview"
+                src="../assets/images/avatar.png"
+                alt="avatar"
+                class="avatar"
+              />
+              <label class="upload-btn">
+                Change photo
+                <input id="photoInput" type="file" accept="image/*" />
+              </label>
+            </div>
+
+            <div class="meta">
+              <div class="meta-row">
+                <strong id="displayNamePreview">Your Name</strong>
+              </div>
+              <div class="meta-row small" id="emailPreview">
+                you@example.com
+              </div>
+              <div class="meta-row small" id="rolePreview">Role: Voter</div>
+            </div>
+          </div>
+
+          <!-- Right: Editable form -->
+          <div class="right">
+            <form id="profileForm">
+              <div class="form-row">
+                <label for="displayName">Full name</label>
+                <input
+                  id="displayName"
+                  name="displayName"
+                  type="text"
+                  placeholder="Enter full name"
+                  required
+                />
+              </div>
+
+              <div class="form-row">
+                <label for="email">Email</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="your@email.com"
+                  required
+                />
+              </div>
+
+              <div class="form-row">
+                <label for="phone">Phone</label>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  placeholder="+91 9XXXXXXXXX"
+                />
+              </div>
+
+              <div class="form-row">
+                <label for="dob">Date of birth</label>
+                <input id="dob" name="dob" type="date" />
+              </div>
+
+              <div class="form-row">
+                <label for="bio">Short bio</label>
+                <textarea
+                  id="bio"
+                  name="bio"
+                  rows="3"
+                  placeholder="A short line about you"
+                ></textarea>
+              </div>
+
+              <div class="actions">
+                <button type="submit" class="btn primary">Save changes</button>
+                <button type="button" id="logoutBtn" class="btn outline">
+                  Logout
+                </button>
+              </div>
+
+              <div id="status" class="status"></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Photo preview
+      const photoInput = document.getElementById("photoInput");
+      const avatarPreview = document.getElementById("avatarPreview");
+      const displayNameInput = document.getElementById("displayName");
+      const displayNamePreview = document.getElementById("displayNamePreview");
+      const emailInput = document.getElementById("email");
+      const emailPreview = document.getElementById("emailPreview");
+      const rolePreview = document.getElementById("rolePreview");
+      const status = document.getElementById("status");
+
+      photoInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+          alert("Please select an image file");
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          avatarPreview.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // Live preview for name and email
+      displayNameInput.addEventListener("input", () => {
+        displayNamePreview.textContent = displayNameInput.value || "Your Name";
+      });
+      emailInput.addEventListener("input", () => {
+        emailPreview.textContent = emailInput.value || "you@example.com";
+      });
+
+      // Simple submit handler (frontend-only for now)
+      document.getElementById("profileForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        status.textContent = "Saving...";
+        status.classList.remove("error");
+        // Simulate a save (replace with API call later)
+        setTimeout(() => {
+          status.textContent = "Profile saved (demo)";
+        }, 700);
+      });
+
+      // Logout button (frontend placeholder)
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        // Clear local data when backend connected
+        alert("Logged out (demo).");
+        // window.location.href = '../pages/welcome.html'; // optional redirect
+      });
+
+      // On load: If you later wire auth, fill these inputs from stored user info
+      window.addEventListener("DOMContentLoaded", () => {
+        // Example: prefill from localStorage if available
+        try {
+          const u = JSON.parse(localStorage.getItem("vs_user") || "null");
+          if (u) {
+            displayNameInput.value = u.displayName || "";
+            emailInput.value = u.email || "";
+            document.getElementById("phone").value = u.phone || "";
+            document.getElementById("dob").value = u.dob
+              ? u.dob.split("T")[0]
+              : "";
+            displayNamePreview.textContent = u.displayName || "Your Name";
+            emailPreview.textContent = u.email || "you@example.com";
+            rolePreview.textContent = "Role: " + (u.role || "VOTER");
+            if (u.photoUrl) avatarPreview.src = u.photoUrl;
+          }
+        } catch (err) {
+          // ignore
+        }
+      });
+    </script>
+  </body>
+</html>

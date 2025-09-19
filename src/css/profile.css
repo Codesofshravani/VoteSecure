@@ -1,0 +1,131 @@
+/* Base */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(180deg,#f4f7fb 0%, #eef3fb 100%);
+  color: #15203a;
+}
+
+/* Container */
+.page-container {
+  max-width: 1000px;
+  margin: 36px auto;
+  padding: 0 16px;
+}
+
+/* Card */
+.profile-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 10px 30px rgba(20,30,60,0.06);
+}
+
+/* Title */
+.profile-card h2 {
+  margin: 0 0 18px;
+  font-size: 22px;
+  color: #1f2d4a;
+}
+
+/* Layout grid */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Left: avatar */
+.avatar-wrap {
+  text-align: center;
+  padding: 12px;
+}
+
+.avatar {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 8px 20px rgba(20,30,60,0.06);
+  border: 6px solid rgba(255,255,255,0.9);
+}
+
+.upload-btn {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  cursor: pointer;
+  font-size: 14px;
+  color: #1f2d4a;
+  position: relative;
+  overflow: hidden;
+}
+
+.upload-btn input[type="file"] {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Meta */
+.meta { margin-top: 18px; text-align: center; color: #475569; }
+.meta .meta-row { margin-bottom: 6px; }
+.meta .small { font-size: 13px; color: #6b7280; }
+
+/* Right: form */
+.form-row { margin-bottom: 14px; text-align: left; }
+.form-row label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 13px; }
+.form-row input, .form-row textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.btn {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn.primary {
+  background: #2b6ef6;
+  color: white;
+}
+
+.btn.primary:hover { background: #1f55c3; }
+
+.btn.outline {
+  background: white;
+  border: 1px solid #cbd5e1;
+  color: #1f2d4a;
+}
+
+/* Status */
+.status {
+  margin-top: 12px;
+  color: #16a34a;
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 880px) {
+  .profile-grid { grid-template-columns: 1fr; }
+  .avatar { width: 120px; height: 120px; }
+}

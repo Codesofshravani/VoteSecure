@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VoteSecure - Voter Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="stylesheet" href="../css/voter-dashboard.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div class="logo">
+          🗳️ VoteSecure Voter
+        </div>
+        
+        <nav class="nav-menu">
+          <!-- Navigation items removed for cleaner interface -->
+        </nav>
+        
+        <div></div>
+        
+        <div class="user-menu">
+          <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <h1 class="page-title">Voter Dashboard</h1>
+      <p class="page-subtitle">Participate in active elections and view your voting history</p>
+
+      <!-- Active Elections -->
+      <div class="elections-grid" id="elections-grid">
+        <!-- Elections will be loaded dynamically -->
+      </div>
+
+      <!-- Voting History -->
+      <div class="voting-history">
+        <div class="history-header">
+          <h3>Your Voting History</h3>
+        </div>
+        
+        <div class="history-list" id="voting-history">
+          <!-- Voting history will be loaded dynamically -->
+        </div>
+      </div>
+    </main>
+
+    <script src="../js/api.js"></script>
+    <script>
+      // Check authentication
+      if (!isAuthenticated()) {
+        window.location.href = 'welcome.html';
+      }
+
+      const userInfo = getUserInfo();
+      if (!userInfo || userInfo.role !== 'voter') {
+        alert('Voter access required');
+        window.location.href = 'welcome.html';
+      }
+
+      async function loadElections() {
+        try {
+          const elections = await api.getElections();
+          const electionsGrid = document.getElementById('elections-grid');
+          
+          if (elections.length === 0) {
+            electionsGrid.innerHTML = '<div style="text-align: center; padding: 3rem; color: #6b7280;">No elections available</div>';
+            return;
+          }
+          
+          electionsGrid.innerHTML = elections.map(election => {
+            const statusClass = `status-${election.status}`;
+            const isActive = election.status === 'active';
+            const isUpcoming = election.status === 'upcoming';
+            
+            return `
+              <div class="election-card">
+                <div class="election-header">
+                  <div class="election-title">${election.title}</div>
+                  <div class="election-type">${election.description || 'Election'}</div>
+                </div>
+                <div class="election-body">
+                  <div class="election-info">
+                    <div class="info-item">
+                      <span class="info-label">Status:</span>
+                      <span class="election-status ${statusClass}">${election.status.charAt(0).toUpperCase() + election.status.slice(1)}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">${isUpcoming ? 'Starts:' : 'Ends:'}</span>
+                      <span class="info-value">${new Date(isUpcoming ? election.start_date : election.end_date).toLocaleString()}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">Candidates:</span>
+                      <span class="info-value">${election.candidates ? election.candidates.length : 0}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">Total Votes:</span>
+                      <span class="info-value">${election.total_votes || 0}</span>
+                    </div>
+                  </div>
+                  <button class="vote-btn" ${!isActive ? 'disabled' : ''} onclick="vote(${election.id})">
+                    ${isActive ? 'Cast Your Vote' : isUpcoming ? 'Voting Not Started' : 'Voting Ended'}
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+          
+        } catch (error) {
+          console.error('Error loading elections:', error);
+          showMessage('Error loading elections: ' + error.message, 'error');
+        }
+      }
+      
+      function vote(electionId) {
+        window.location.href = `election-details.html?id=${electionId}`;
+      }
+      
+      function logout() {
+        if (confirm('Are you sure you want to logout?')) {
+          api.logout();
+        }
+      }
+      
+      async function loadVotingHistory() {
+        const historyList = document.getElementById('voting-history');
+        historyList.innerHTML = '<div class="history-item"><div class="history-content">No voting history available. Cast a vote to see your history here.</div></div>';
+      }
+      
+      // Load elections and voting history when page loads
+      document.addEventListener('DOMContentLoaded', () => {
+        loadElections();
+        loadVotingHistory();
+      });
+      
+      // Refresh data every 30 seconds
+      setInterval(() => {
+        loadElections();
+        loadVotingHistory();
+      }, 30000);
+    </script>
+  </body>
+</html>

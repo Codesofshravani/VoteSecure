@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VoteSecure - Admin Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+    <link rel="stylesheet" href="../css/admin-dashboard.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div class="logo">🗳️ VoteSecure Admin</div>
+
+        <div></div>
+
+        <div class="user-menu">
+          <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <h1 class="page-title">Admin Dashboard</h1>
+      <p class="page-subtitle">
+        Manage elections and monitor voting activities
+      </p>
+
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon elections">🗳️</div>
+          <div class="stat-number">5</div>
+          <div class="stat-label">Active Elections</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon voters">👥</div>
+          <div class="stat-number">1,247</div>
+          <div class="stat-label">Registered Voters</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon votes">✅</div>
+          <div class="stat-number">892</div>
+          <div class="stat-label">Total Votes Cast</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon results">📊</div>
+          <div class="stat-number">3</div>
+          <div class="stat-label">Completed Elections</div>
+        </div>
+      </div>
+
+      <!-- Action Cards -->
+      <div class="actions-grid">
+        <div class="action-card">
+          <div class="action-icon">➕</div>
+          <h3>Create New Election</h3>
+          <p>Set up a new election with candidates, voting period, and rules</p>
+          <a href="create-elections.html" class="action-btn">Create Election</a>
+        </div>
+
+        <div class="action-card">
+          <div class="action-icon">🗳️</div>
+          <h3>Manage Elections</h3>
+          <p>View and manage all elections, including deletion options</p>
+          <a href="manage-elections.html" class="action-btn"
+            >Manage Elections</a
+          >
+        </div>
+
+        <div class="action-card">
+          <div class="action-icon">👥</div>
+          <h3>Manage Voters</h3>
+          <p>Add, remove, or update voter information and permissions</p>
+          <button class="action-btn" onclick="manageVoters()">
+            Manage Voters
+          </button>
+        </div>
+
+        <div class="action-card">
+          <div class="action-icon">📊</div>
+          <h3>View Results</h3>
+          <p>Monitor real-time results and generate detailed reports</p>
+          <button class="action-btn" onclick="showResultsModal()">
+            View Results
+          </button>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="recent-activity">
+        <div class="activity-header">
+          <h3>Recent Activity</h3>
+        </div>
+
+        <div class="activity-list">
+          <div class="activity-item">
+            <div class="activity-icon">🗳️</div>
+            <div class="activity-content">
+              <div class="activity-title">
+                New election "Student Council 2024" created
+              </div>
+              <div class="activity-time">2 hours ago</div>
+            </div>
+          </div>
+
+          <div class="activity-item">
+            <div class="activity-icon">👤</div>
+            <div class="activity-content">
+              <div class="activity-title">25 new voters registered</div>
+              <div class="activity-time">4 hours ago</div>
+            </div>
+          </div>
+
+          <div class="activity-item">
+            <div class="activity-icon">✅</div>
+            <div class="activity-content">
+              <div class="activity-title">
+                Election "Class Representative" completed
+              </div>
+              <div class="activity-time">1 day ago</div>
+            </div>
+          </div>
+
+          <div class="activity-item">
+            <div class="activity-icon">📊</div>
+            <div class="activity-content">
+              <div class="activity-title">
+                Results published for "Sports Captain"
+              </div>
+              <div class="activity-time">2 days ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Results Modal -->
+    <div id="resultsModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Select Election to View Results</h3>
+          <span class="close" onclick="closeResultsModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+          <select id="electionSelect" class="election-select">
+            <option value="">Loading elections...</option>
+          </select>
+          <div class="modal-actions">
+            <button class="action-btn" onclick="viewSelectedResults()">
+              View Results
+            </button>
+            <button class="action-btn secondary" onclick="closeResultsModal()">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+      // Check authentication
+      if (!isAuthenticated()) {
+        window.location.href = "welcome.html";
+      }
+
+      const userInfo = getUserInfo();
+      if (!userInfo || userInfo.role !== "admin") {
+        alert("Admin access required");
+        window.location.href = "welcome.html";
+      }
+
+      // Load real-time dashboard data
+      async function loadDashboardData() {
+        try {
+          const [elections, stats] = await Promise.all([
+            api.getElections(),
+            api.getDashboardStats(),
+          ]);
+
+          // Update stats cards with real data
+          document.querySelector(
+            ".stat-card:nth-child(1) .stat-number"
+          ).textContent = stats.elections.active_elections || 0;
+          document.querySelector(
+            ".stat-card:nth-child(2) .stat-number"
+          ).textContent = stats.voters || 0;
+          document.querySelector(
+            ".stat-card:nth-child(3) .stat-number"
+          ).textContent = stats.votes || 0;
+          document.querySelector(
+            ".stat-card:nth-child(4) .stat-number"
+          ).textContent = stats.elections.completed_elections || 0;
+
+          // Update recent activity with real-time vote data
+          updateRecentActivity(elections);
+
+          // Log real-time vote data for debugging
+          console.log("Real-time elections data:", elections);
+          elections.forEach((election) => {
+            if (election.candidates && election.candidates.length > 0) {
+              console.log(`Election: ${election.title}`);
+              election.candidates.forEach((candidate) => {
+                console.log(
+                  `  ${candidate.name}: ${candidate.vote_count} votes`
+                );
+              });
+            }
+          });
+        } catch (error) {
+          console.error("Error loading dashboard data:", error);
+          showMessage("Error loading dashboard data", "error");
+        }
+      }
+
+      function updateRecentActivity(elections) {
+        const activityList = document.querySelector(".activity-list");
+        activityList.innerHTML = "";
+
+        // Sort elections by creation date (most recent first)
+        const recentElections = elections
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          .slice(0, 4);
+
+        recentElections.forEach((election) => {
+          const activityItem = document.createElement("div");
+          activityItem.className = "activity-item";
+
+          const timeAgo = getTimeAgo(new Date(election.created_at));
+          const statusIcon =
+            election.status === "active"
+              ? "🗳️"
+              : election.status === "completed"
+              ? "✅"
+              : "📅";
+
+          activityItem.innerHTML = `
+            <div class="activity-icon">${statusIcon}</div>
+            <div class="activity-content">
+              <div class="activity-title">Election "${election.title}" ${
+            election.status === "active"
+              ? "is active"
+              : election.status === "completed"
+              ? "completed"
+              : "created"
+          }</div>
+              <div class="activity-time">${timeAgo}</div>
+            </div>
+          `;
+
+          activityList.appendChild(activityItem);
+        });
+
+        if (recentElections.length === 0) {
+          activityList.innerHTML =
+            '<div class="activity-item"><div class="activity-content"><div class="activity-title">No recent activity</div></div></div>';
+        }
+      }
+
+      function getTimeAgo(date) {
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 60) return `${diffMins} minutes ago`;
+        if (diffHours < 24) return `${diffHours} hours ago`;
+        return `${diffDays} days ago`;
+      }
+
+      function logout() {
+        if (confirm("Are you sure you want to logout?")) {
+          api.logout();
+        }
+      }
+
+      function manageVoters() {
+        window.location.href = "manage-voters.html";
+      }
+
+      async function showResultsModal() {
+        console.log("Opening results modal...");
+        const modal = document.getElementById("resultsModal");
+        const select = document.getElementById("electionSelect");
+
+        modal.style.display = "block";
+        console.log("Modal displayed");
+
+        try {
+          console.log("Fetching elections...");
+          const elections = await api.getElections();
+          console.log("Elections loaded:", elections);
+          select.innerHTML = "";
+
+          if (elections.length === 0) {
+            select.innerHTML = '<option value="">No elections found</option>';
+            return;
+          }
+
+          elections.forEach((election) => {
+            const option = document.createElement("option");
+            option.value = election.id;
+            option.textContent = `${election.title} (${election.status})`;
+            select.appendChild(option);
+          });
+        } catch (error) {
+          console.error("Error loading elections:", error);
+          select.innerHTML =
+            '<option value="">Error loading elections</option>';
+        }
+      }
+
+      function closeResultsModal() {
+        document.getElementById("resultsModal").style.display = "none";
+      }
+
+      function viewSelectedResults() {
+        const select = document.getElementById("electionSelect");
+        const electionId = select.value;
+
+        if (!electionId) {
+          alert("Please select an election");
+          return;
+        }
+
+        window.location.href = `results.html?id=${electionId}`;
+      }
+
+      // Close modal when clicking outside
+      window.onclick = function (event) {
+        const modal = document.getElementById("resultsModal");
+        if (event.target === modal) {
+          closeResultsModal();
+        }
+      };
+
+      // Load data when page loads
+      document.addEventListener("DOMContentLoaded", loadDashboardData);
+
+      // Refresh data every 30 seconds
+      setInterval(loadDashboardData, 30000);
+    </script>
+  </body>
+</html>

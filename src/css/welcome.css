@@ -1,0 +1,277 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Animated Background Elements */
+.bg-animation {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.floating-shape {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  animation: float 20s infinite linear;
+}
+
+.shape-1 { width: 80px; height: 80px; top: 20%; left: 10%; animation-delay: 0s; }
+.shape-2 { width: 120px; height: 120px; top: 60%; left: 80%; animation-delay: 5s; }
+.shape-3 { width: 60px; height: 60px; top: 80%; left: 20%; animation-delay: 10s; }
+.shape-4 { width: 100px; height: 100px; top: 30%; left: 70%; animation-delay: 15s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-30px) rotate(120deg); }
+  66% { transform: translateY(20px) rotate(240deg); }
+}
+
+.page-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  position: relative;
+  z-index: 10;
+}
+
+/* Left Section - Content */
+.content-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 80px;
+  position: relative;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 40px;
+  animation: slideInLeft 1s ease-out;
+}
+
+.logo-icon {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 35px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+  50% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
+}
+
+.logo-text h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -2px;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.logo-text .tagline {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  margin-top: 5px;
+}
+
+.main-content {
+  animation: slideInLeft 1s ease-out 0.3s both;
+}
+
+.welcome-heading {
+  font-size: 4.5rem;
+  font-weight: 900;
+  color: white;
+  line-height: 1.1;
+  margin-bottom: 25px;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.description {
+  font-size: 1.3rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  margin-bottom: 50px;
+  max-width: 600px;
+}
+
+.cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 40px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #667eea;
+  text-decoration: none;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  transition: all 0.4s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.6s;
+}
+
+.cta-button:hover::before {
+  left: 100%;
+}
+
+.cta-button:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.cta-button .arrow {
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.cta-button:hover .arrow {
+  transform: translateX(5px);
+}
+
+/* Right Section - Visual */
+.visual-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.hero-visual {
+  width: 400px;
+  height: 400px;
+  position: relative;
+  animation: slideInRight 1s ease-out 0.6s both;
+}
+
+.visual-circle {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  animation: rotate 20s linear infinite;
+}
+
+.visual-circle::before {
+  content: '';
+  position: absolute;
+  width: 120%;
+  height: 120%;
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: rotate 30s linear infinite reverse;
+}
+
+.visual-icon {
+  font-size: 8rem;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes rotate {
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-50px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(50px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Features Section */
+.features {
+  position: absolute;
+  bottom: 40px;
+  left: 80px;
+  display: flex;
+  gap: 40px;
+  animation: slideInUp 1s ease-out 1s both;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.feature-icon {
+  font-size: 1.2rem;
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .page-container { flex-direction: column; }
+  .content-section { padding: 40px; text-align: center; }
+  .visual-section { padding: 20px; }
+  .hero-visual { width: 300px; height: 300px; }
+  .welcome-heading { font-size: 3.5rem; }
+  .features { position: static; justify-content: center; margin-top: 30px; }
+}
+
+@media (max-width: 768px) {
+  .content-section { padding: 20px; }
+  .welcome-heading { font-size: 2.8rem; }
+  .logo-text h1 { font-size: 2.5rem; }
+  .description { font-size: 1.1rem; }
+  .hero-visual { width: 250px; height: 250px; }
+  .visual-icon { font-size: 6rem; }
+}

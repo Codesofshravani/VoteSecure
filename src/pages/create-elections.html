@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VoteSecure - Create Election</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+    <link rel="stylesheet" href="../css/create-elections.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div
+        style="
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <div class="logo">🗳️ VoteSecure Admin</div>
+        <a href="admin-dashboard.html" class="back-btn">← Back to Dashboard</a>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <h1 class="page-title">Create New Election</h1>
+      <p class="page-subtitle">
+        Set up a new election with candidates and voting period
+      </p>
+
+      <!-- Election Form -->
+      <form id="election-form" class="election-form">
+        <!-- Basic Information -->
+        <div class="form-section">
+          <h3 class="section-title">Election Details</h3>
+
+          <div class="form-group">
+            <label for="title">Election Title</label>
+            <input
+              type="text"
+              id="title"
+              placeholder="e.g., Student Council President 2024"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea
+              id="description"
+              placeholder="Brief description of the election (optional)"
+              rows="3"
+            ></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="start-date">Start Date & Time</label>
+              <input type="datetime-local" id="start-date" required />
+            </div>
+
+            <div class="form-group">
+              <label for="end-date">End Date & Time</label>
+              <input type="datetime-local" id="end-date" required />
+            </div>
+          </div>
+        </div>
+
+        <!-- Candidates Section -->
+        <div class="form-section">
+          <h3 class="section-title">Candidates</h3>
+
+          <div class="candidates-section" id="candidates-container">
+            <!-- Candidates will be added here -->
+          </div>
+
+          <button
+            type="button"
+            class="add-candidate-btn"
+            onclick="addCandidate()"
+          >
+            + Add Candidate
+          </button>
+        </div>
+
+        <!-- Submit Section -->
+        <div class="submit-section">
+          <button
+            type="button"
+            class="submit-btn"
+            style="background: #e2e8f0; color: #4a5568"
+            onclick="previewElection()"
+          >
+            Preview Election
+          </button>
+          <button type="submit" class="submit-btn">Create Election</button>
+        </div>
+      </form>
+    </main>
+
+    <script src="../js/api.js"></script>
+    <script>
+      let candidateCount = 0;
+
+      // Check if user is authenticated admin
+      if (!isAuthenticated()) {
+        window.location.href = "welcome.html";
+      }
+
+      const userInfo = getUserInfo();
+      if (!userInfo || userInfo.role !== "admin") {
+        alert("Admin access required");
+        window.location.href = "welcome.html";
+      }
+
+      // Add initial candidates
+      addCandidate();
+      addCandidate();
+
+      function addCandidate(name = "", description = "") {
+        candidateCount++;
+        const container = document.getElementById("candidates-container");
+
+        const candidateDiv = document.createElement("div");
+        candidateDiv.className = "candidate-item";
+        candidateDiv.innerHTML = `
+          <input 
+            type="text" 
+            placeholder="Candidate Name" 
+            value="${name}"
+            required 
+          />
+          <input 
+            type="text" 
+            placeholder="Description (optional)" 
+            value="${description}"
+          />
+          <button type="button" class="remove-btn" onclick="removeCandidate(this)">
+            Remove
+          </button>
+        `;
+
+        container.appendChild(candidateDiv);
+      }
+
+      function removeCandidate(button) {
+        const candidateItem = button.parentElement;
+        const container = document.getElementById("candidates-container");
+
+        // Don't allow removing if only 2 candidates left
+        if (container.children.length <= 2) {
+          alert("At least 2 candidates are required");
+          return;
+        }
+
+        candidateItem.remove();
+      }
+
+      function previewElection() {
+        const title = document.getElementById("title").value;
+        const description = document.getElementById("description").value;
+        const startDate = document.getElementById("start-date").value;
+        const endDate = document.getElementById("end-date").value;
+
+        const candidates = Array.from(
+          document.querySelectorAll(".candidate-item")
+        ).map((item, index) => {
+          const inputs = item.querySelectorAll("input");
+          return `${index + 1}. ${inputs[0].value} ${
+            inputs[1].value ? "- " + inputs[1].value : ""
+          }`;
+        });
+
+        const preview = `
+Election Title: ${title}
+Description: ${description || "No description"}
+Start: ${new Date(startDate).toLocaleString()}
+End: ${new Date(endDate).toLocaleString()}
+
+Candidates:
+${candidates.join("\\n")}
+        `;
+
+        alert(preview);
+      }
+
+      // Form submission
+      document
+        .getElementById("election-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const title = document.getElementById("title").value.trim();
+          const description = document
+            .getElementById("description")
+            .value.trim();
+          const startDate = document.getElementById("start-date").value;
+          const endDate = document.getElementById("end-date").value;
+
+          if (!title || !startDate || !endDate) {
+            alert("Please fill in all required fields");
+            return;
+          }
+
+          // Validate dates
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          const now = new Date();
+
+          if (end <= start) {
+            alert("End date must be after start date");
+            return;
+          }
+
+          // Collect candidates
+          const candidateElements =
+            document.querySelectorAll(".candidate-item");
+          const candidates = [];
+
+          for (let item of candidateElements) {
+            const inputs = item.querySelectorAll("input");
+            const name = inputs[0].value.trim();
+            const desc = inputs[1].value.trim();
+
+            if (!name) {
+              alert("All candidates must have a name");
+              return;
+            }
+
+            candidates.push({ name, description: desc });
+          }
+
+          if (candidates.length < 2) {
+            alert("At least 2 candidates are required");
+            return;
+          }
+
+          try {
+            const electionData = {
+              title,
+              description,
+              startDate,
+              endDate,
+              candidates,
+            };
+
+            console.log("Creating election:", electionData);
+            const response = await api.createElection(electionData);
+
+            showMessage("Election created successfully!", "success");
+            setTimeout(() => {
+              window.location.href = "admin-dashboard.html";
+            }, 2000);
+          } catch (error) {
+            console.error("Error creating election:", error);
+            alert("Error creating election: " + error.message);
+          }
+        });
+    </script>
+  </body>
+</html>

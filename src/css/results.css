@@ -1,0 +1,87 @@
+/* Base */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(180deg,#f4f7fb 0%, #eef3fb 100%);
+  color: #15203a;
+}
+
+.page-container {
+  max-width: 980px;
+  margin: 32px auto;
+  padding: 0 16px 40px;
+}
+
+/* Topbar */
+.topbar {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+}
+.topbar .left h2 { margin:0; font-size:22px; }
+.topbar .left .muted { margin-top:4px; font-size:13px; color:#6b7280; }
+
+/* Card */
+.card {
+  background:#fff;
+  border-radius:12px;
+  padding:20px;
+  box-shadow:0 8px 28px rgba(20,30,60,0.06);
+}
+
+.election-title { margin:0 0 6px; font-size:20px; }
+.election-meta { margin:0 0 18px; color:#6b7280; font-size:14px; }
+
+/* Table */
+.results-table {
+  width:100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+}
+.results-table th, .results-table td {
+  padding:12px;
+  border-bottom:1px solid #e5e7eb;
+  text-align:left;
+}
+.results-table th {
+  background:#f9fafb;
+  font-size:14px;
+}
+.results-table td.votes {
+  font-weight:bold;
+  color:#1f2d4a;
+}
+
+/* Chart container */
+.chart-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Buttons */
+.btn {
+  padding:10px 14px;
+  border-radius:8px;
+  border:none;
+  font-weight:700;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  cursor:pointer;
+}
+.btn.outline {
+  background:#fff;
+  border:1px solid #d1d5db;
+  color:#15203a;
+}
+.btn.outline:hover { background:#f3f4f6; }
+
+/* Footer note */
+.footer-note { margin-top:18px; color:#6b7280; font-size:13px; }
+
+/* Responsive */
+@media (max-width: 700px) {
+  .results-table th, .results-table td { font-size:13px; padding:8px; }
+}

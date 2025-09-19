@@ -1,0 +1,71 @@
+{
+
+  "name": "votesecure",
+
+  "version": "1.0.0",
+
+  "description": "Secure Electronic Voting System",
+
+  "main": "server.js",
+
+  "scripts": {
+
+    "start": "node server.js",
+
+    "dev": "nodemon server.js",
+
+    "client": "http-server ./src -p 5500",
+
+    "deploy": "node blockchain/deploy.js",
+    "test-blockchain": "node test-blockchain.js"
+
+  },
+
+  "keywords": [
+
+    "voting",
+
+    "election",
+
+    "democracy"
+
+  ],
+
+  "author": "",
+
+  "license": "ISC",
+
+  "dependencies": {
+
+    "bcryptjs": "^2.4.3",
+
+    "cors": "^2.8.5",
+
+    "dotenv": "^16.3.1",
+
+    "ethereumjs-util": "^7.1.5",
+
+    "express": "^4.18.2",
+
+    "jsonwebtoken": "^9.0.2",
+
+    "mysql2": "^3.6.5",
+
+    "solc": "^0.5.16",
+
+    "web3": "^4.3.0"
+
+  },
+
+  "devDependencies": {
+
+    "http-server": "^14.1.1",
+
+    "nodemon": "^3.0.2",
+
+    "truffle": "^5.11.5"
+
+  }
+
+}
+

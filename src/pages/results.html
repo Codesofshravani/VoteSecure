@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>VoteSecure - Election Results</title>
+    <link rel="stylesheet" href="../css/results.css" />
+  </head>
+  <body>
+    <div class="page-container">
+      <div class="topbar">
+        <div class="left">
+          <h2>Election Results</h2>
+          <p class="muted">Final tally of votes per candidate</p>
+        </div>
+        <div class="right">
+          <a href="admin-dashboard.html" class="btn outline"
+            >Back to Dashboard</a
+          >
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="election-title" id="electionTitle">Loading...</h3>
+        <p class="election-meta" id="electionMeta">
+          Loading election details...
+        </p>
+
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th>Candidate</th>
+              <th>Description</th>
+              <th>Votes</th>
+            </tr>
+          </thead>
+          <tbody id="resultsTableBody">
+            <tr>
+              <td colspan="3">Loading results...</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="chart-container">
+          <canvas id="resultsChart"></canvas>
+        </div>
+      </div>
+
+      <div class="footer-note small muted">
+        Results are automatically calculated and displayed once an election
+        ends.
+      </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <!-- Chart.js CDN for bar chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      let chart = null;
+      
+      // Check authentication
+      if (!isAuthenticated()) {
+        window.location.href = 'welcome.html';
+      }
+      
+      // Get election ID from URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const electionId = urlParams.get('id');
+      
+      if (!electionId) {
+        alert('No election selected');
+        window.location.href = 'admin-dashboard.html';
+      }
+      
+      // Load election results
+      async function loadElectionResults() {
+        try {
+          const elections = await api.getElections();
+          const election = elections.find(e => e.id == electionId);
+          
+          if (!election) {
+            alert('Election not found');
+            window.location.href = 'admin-dashboard.html';
+            return;
+          }
+          
+          // Update election info
+          document.getElementById('electionTitle').textContent = election.title;
+          document.getElementById('electionMeta').innerHTML = `
+            Status: <strong>${election.status}</strong> | 
+            Ended on: <strong>${new Date(election.end_date).toLocaleString()}</strong>
+          `;
+          
+          // Update results table
+          const tableBody = document.getElementById('resultsTableBody');
+          tableBody.innerHTML = '';
+          
+          if (election.candidates && election.candidates.length > 0) {
+            election.candidates.forEach(candidate => {
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                <td>${escapeHtml(candidate.name)}</td>
+                <td>${escapeHtml(candidate.description || 'No description')}</td>
+                <td class="votes">${candidate.vote_count || 0}</td>
+              `;
+              tableBody.appendChild(row);
+            });
+            
+            // Create chart
+            createChart(election.candidates);
+          } else {
+            tableBody.innerHTML = '<tr><td colspan="3">No candidates found</td></tr>';
+          }
+          
+        } catch (error) {
+          console.error('Error loading election results:', error);
+          document.getElementById('electionTitle').textContent = 'Error Loading Results';
+          document.getElementById('electionMeta').textContent = 'Failed to load election data';
+          document.getElementById('resultsTableBody').innerHTML = '<tr><td colspan="3">Error loading results</td></tr>';
+        }
+      }
+      
+      function createChart(candidates) {
+        const ctx = document.getElementById('resultsChart').getContext('2d');
+        
+        if (chart) {
+          chart.destroy();
+        }
+        
+        const labels = candidates.map(c => c.name);
+        const data = candidates.map(c => c.vote_count || 0);
+        const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe'];
+        
+        chart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Votes',
+              data: data,
+              backgroundColor: colors.slice(0, candidates.length),
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              tooltip: { enabled: true }
+            },
+            scales: {
+              y: { beginAtZero: true, ticks: { precision: 0 } }
+            }
+          }
+        });
+      }
+      
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+      
+      // Load results when page loads
+      document.addEventListener('DOMContentLoaded', loadElectionResults);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>VoteSecure - Election Detail</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="stylesheet" href="../css/election-details.css" />
+  </head>
+  <body>
+    <div class="page-container">
+      <div class="topbar">
+        <div class="topbar-content">
+          <div class="left">
+            <h2>🗳️ Election</h2>
+            <p class="muted">Review candidates and cast your vote</p>
+          </div>
+          <div class="right">
+            <a href="voter-dashboard.html" class="btn outline"
+              >← Back to Dashboard</a
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="election-header">
+          <div>
+            <h3 id="electionTitle">Student Council Election</h3>
+            <p class="muted" id="electionDesc">
+              Vote for the next student council president.
+            </p>
+            <div class="meta">
+              Ends: <strong id="electionEnd">20 Dec 2025, 18:00</strong>
+            </div>
+          </div>
+        </div>
+
+        <form id="voteForm" class="vote-form">
+          <div id="candidatesContainer" class="candidates-list">
+            <!-- candidate rows inserted by JS -->
+          </div>
+
+          <div class="vote-actions">
+            <button type="submit" class="btn primary" id="voteBtn">
+              Confirm Vote
+            </button>
+          </div>
+
+          <div id="message" class="message"></div>
+        </form>
+
+        <div id="resultsArea" class="results-area" style="display: none">
+          <h4>Current Results</h4>
+          <div id="resultsList"></div>
+        </div>
+      </div>
+
+      <div class="footer-note small muted">
+        Your vote is private.
+      </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+      let election = null;
+      
+      // Check authentication
+      if (!isAuthenticated()) {
+        window.location.href = 'welcome.html';
+      }
+      
+      // Get election ID from URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const electionId = urlParams.get('id');
+      
+      if (!electionId) {
+        alert('No election selected');
+        window.location.href = 'voter-dashboard.html';
+      }
+      
+      // Load election data from API
+      async function loadElection() {
+        try {
+          const elections = await api.getElections();
+          election = elections.find(e => e.id == electionId);
+          
+          if (!election) {
+            alert('Election not found');
+            window.location.href = 'voter-dashboard.html';
+            return;
+          }
+          
+          // Convert API data format to match existing code
+          election.endAt = election.end_date;
+          election.candidates = election.candidates.map(c => ({
+            id: c.id,
+            name: c.name,
+            description: c.description,
+            votes: c.vote_count || 0
+          }));
+          
+          renderElectionData();
+        } catch (error) {
+          console.error('Error loading election:', error);
+          alert('Error loading election data');
+        }
+      }
+
+      // Helpers
+      function qs(sel) {
+        return document.querySelector(sel);
+      }
+      function qsa(sel) {
+        return document.querySelectorAll(sel);
+      }
+
+      // Render election info
+      function renderElectionData() {
+        qs("#electionTitle").textContent = election.title;
+        qs("#electionDesc").textContent = election.description || 'No description';
+        qs("#electionEnd").textContent = new Date(election.endAt).toLocaleString();
+        
+        renderCandidates();
+      }
+
+      const container = qs("#candidatesContainer");
+      const resultsArea = qs("#resultsArea");
+      const resultsList = qs("#resultsList");
+      const message = qs("#message");
+
+      // Check if user already voted
+      function hasVoted() {
+        // Check if current user has voted in this election
+        const userInfo = getUserInfo();
+        if (!userInfo || !election.candidates) return false;
+        
+        // This is a simple check - in production you'd call an API
+        return !!localStorage.getItem(`voted_election_${election.id}_user_${userInfo.userId}`);
+      }
+
+      // Render candidates as radio list
+      function renderCandidates() {
+        container.innerHTML = "";
+        election.candidates.forEach((c) => {
+          const div = document.createElement("div");
+          div.className = "candidate-card";
+          div.innerHTML = `
+          <label>
+            <input type="radio" name="candidate" value="${c.id}" ${
+            hasVoted() ? "disabled" : ""
+          } />
+            <div class="candidate-content">
+              <div class="cand-name">${escapeHtml(c.name)}</div>
+              <div class="cand-desc">${escapeHtml(c.description || "")}</div>
+            </div>
+            <div class="cand-votes small muted">${c.votes} votes</div>
+          </label>
+        `;
+          container.appendChild(div);
+        });
+      }
+
+      // Render results list (simple)
+      function renderResults() {
+        resultsList.innerHTML = "";
+        election.candidates.forEach((c) => {
+          const row = document.createElement("div");
+          row.className = "result-row";
+          row.innerHTML = `
+          <div class="r-name">${escapeHtml(c.name)}</div>
+          <div class="r-bar"><span style="width:${calcPercent(
+            c.votes
+          )}%"></span></div>
+          <div class="r-count">${c.votes}</div>
+        `;
+          resultsList.appendChild(row);
+        });
+      }
+
+      function calcPercent(v) {
+        const total = election.candidates.reduce((s, x) => s + x.votes, 0) || 1;
+        return Math.round((v / total) * 100);
+      }
+
+      // Vote handler
+      qs("#voteForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        
+        if (hasVoted()) {
+          message.textContent = "You have already voted in this election.";
+          message.style.color = "red";
+          return;
+        }
+        
+        const sel = document.querySelector('input[name="candidate"]:checked');
+        if (!sel) {
+          message.textContent = "Select a candidate first.";
+          message.style.color = "red";
+          return;
+        }
+        
+        const candidateId = Number(sel.value);
+        
+        try {
+          // Cast vote via API
+          await api.castVote({
+            electionId: election.id,
+            candidateId: candidateId
+          });
+          
+          const userInfo = getUserInfo();
+          localStorage.setItem(`voted_election_${election.id}_user_${userInfo.userId}`, candidateId);
+          
+          message.textContent = "Vote cast successfully!";
+          message.style.color = "green";
+          
+          // Reload election data to get updated vote counts
+          await loadElection();
+          
+
+          
+        } catch (error) {
+          console.error('Error casting vote:', error);
+          message.textContent = "Error casting vote: " + error.message;
+          message.style.color = "red";
+        }
+      });
+
+
+
+      // Load election data when page loads
+      document.addEventListener('DOMContentLoaded', loadElection);
+
+      // utility escape
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+    </script>
+  </body>
+</html>

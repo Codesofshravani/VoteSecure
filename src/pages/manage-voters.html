@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VoteSecure - Manage Voters</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="stylesheet" href="../css/admin-dashboard.css" />
+    <style>
+      .voters-table {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-top: 2rem;
+      }
+      
+      .table-header {
+        background: #4f46e5;
+        color: white;
+        padding: 1rem;
+        font-weight: 600;
+      }
+      
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      
+      th, td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      
+      th {
+        background: #f9fafb;
+        font-weight: 600;
+        color: #374151;
+      }
+      
+      .delete-btn {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.875rem;
+      }
+      
+      .delete-btn:hover {
+        background: #b91c1c;
+      }
+      
+      .delete-btn:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+      }
+      
+      .no-voters {
+        text-align: center;
+        padding: 3rem;
+        color: #6b7280;
+      }
+      
+      .voter-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      
+      .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+      
+      .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #4f46e5;
+      }
+      
+      .stat-label {
+        color: #6b7280;
+        margin-top: 0.5rem;
+      }
+      
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .back-btn {
+        background: white;
+        color: #4f46e5;
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div class="logo">
+          🗳️ VoteSecure Admin
+        </div>
+        <a href="admin-dashboard.html" class="back-btn" style="background: white; color: #4f46e5;">← Back to Dashboard</a>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <h1 class="page-title">Manage Voters</h1>
+      <p class="page-subtitle">View and manage registered voters</p>
+
+      <!-- Voter Stats -->
+      <div class="voter-stats">
+        <div class="stat-card">
+          <div class="stat-number" id="total-voters">0</div>
+          <div class="stat-label">Total Voters</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="active-voters">0</div>
+          <div class="stat-label">Active Voters</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="total-votes">0</div>
+          <div class="stat-label">Total Votes Cast</div>
+        </div>
+      </div>
+
+      <!-- Voters Table -->
+      <div class="voters-table">
+        <div class="table-header">
+          Registered Voters
+        </div>
+        <div id="voters-content">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Registered</th>
+                <th>Votes Cast</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="voters-tbody">
+              <!-- Voters will be loaded here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <script src="../js/api.js"></script>
+    <script>
+      // Check authentication
+      if (!isAuthenticated()) {
+        window.location.href = 'welcome.html';
+      }
+
+      const userInfo = getUserInfo();
+      if (!userInfo || userInfo.role !== 'admin') {
+        alert('Admin access required');
+        window.location.href = 'welcome.html';
+      }
+
+      async function loadVoters() {
+        try {
+          const voters = await api.getVoters();
+          
+          const tbody = document.getElementById('voters-tbody');
+          const totalVotersEl = document.getElementById('total-voters');
+          const activeVotersEl = document.getElementById('active-voters');
+          const totalVotesEl = document.getElementById('total-votes');
+          
+          if (voters.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="no-voters">No voters registered yet</td></tr>';
+            totalVotersEl.textContent = '0';
+            activeVotersEl.textContent = '0';
+            totalVotesEl.textContent = '0';
+            return;
+          }
+          
+          // Calculate stats
+          const totalVoters = voters.length;
+          const activeVoters = voters.filter(v => v.votes_cast > 0).length;
+          const totalVotes = voters.reduce((sum, v) => sum + parseInt(v.votes_cast), 0);
+          
+          totalVotersEl.textContent = totalVoters;
+          activeVotersEl.textContent = activeVoters;
+          totalVotesEl.textContent = totalVotes;
+          
+          // Populate table
+          tbody.innerHTML = voters.map(voter => `
+            <tr>
+              <td>${voter.name}</td>
+              <td>${voter.email}</td>
+              <td>${new Date(voter.created_at).toLocaleDateString()}</td>
+              <td>${voter.votes_cast}</td>
+              <td>
+                <button 
+                  class="delete-btn" 
+                  onclick="deleteVoter(${voter.id}, '${voter.name}')"
+                  ${voter.votes_cast > 0 ? 'disabled title="Cannot delete voter who has cast votes"' : ''}
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          `).join('');
+          
+        } catch (error) {
+          console.error('Error loading voters:', error);
+          showMessage('Error loading voters: ' + error.message, 'error');
+        }
+      }
+
+      async function deleteVoter(voterId, voterName) {
+        if (!confirm(`Are you sure you want to delete voter "${voterName}"? This action cannot be undone.`)) {
+          return;
+        }
+        
+        try {
+          await api.deleteVoter(voterId);
+          showMessage('Voter deleted successfully', 'success');
+          loadVoters(); // Reload the list
+        } catch (error) {
+          console.error('Error deleting voter:', error);
+          showMessage('Error deleting voter: ' + error.message, 'error');
+        }
+      }
+
+      // Load voters when page loads
+      document.addEventListener('DOMContentLoaded', loadVoters);
+    </script>
+  </body>
+</html>

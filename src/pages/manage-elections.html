@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VoteSecure - Manage Elections</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="stylesheet" href="../css/admin-dashboard.css" />
+    <style>
+      .elections-table {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-top: 2rem;
+      }
+      
+      .table-header {
+        background: #f8fafc;
+        padding: 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      
+      .table-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin: 0;
+      }
+      
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      
+      th, td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      
+      th {
+        background: #f8fafc;
+        font-weight: 600;
+        color: #4a5568;
+      }
+      
+      .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+      
+      .status-upcoming { background: #fed7d7; color: #c53030; }
+      .status-active { background: #c6f6d5; color: #2f855a; }
+      .status-completed { background: #bee3f8; color: #2b6cb0; }
+      
+      .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+      }
+      
+      .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+      }
+      
+      .btn-danger {
+        background: #e53e3e;
+        color: white;
+      }
+      
+      .btn-danger:hover {
+        background: #c53030;
+      }
+      
+      .btn-danger:disabled {
+        background: #a0aec0;
+        cursor: not-allowed;
+      }
+      
+      .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #718096;
+      }
+      
+      .back-btn {
+        background: white;
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      
+      .back-btn:hover {
+        background: #f7fafc;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center;">
+        <div class="logo">
+          🗳️ VoteSecure Admin
+        </div>
+        <a href="admin-dashboard.html" class="back-btn">← Back to Dashboard</a>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <h1 class="page-title">Manage Elections</h1>
+      <p class="page-subtitle">View and manage all elections in the system</p>
+
+      <!-- Elections Table -->
+      <div class="elections-table">
+        <div class="table-header">
+          <h3 class="table-title">All Elections</h3>
+        </div>
+        
+        <div id="elections-container">
+          <div class="empty-state">
+            <p>Loading elections...</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../js/api.js"></script>
+    <script>
+      // Check authentication
+      if (!isAuthenticated()) {
+        window.location.href = 'welcome.html';
+      }
+
+      const userInfo = getUserInfo();
+      if (!userInfo || userInfo.role !== 'admin') {
+        alert('Admin access required');
+        window.location.href = 'welcome.html';
+      }
+
+      async function loadElections() {
+        try {
+          const elections = await api.getElections();
+          displayElections(elections);
+        } catch (error) {
+          console.error('Error loading elections:', error);
+          showMessage('Error loading elections', 'error');
+        }
+      }
+
+      function displayElections(elections) {
+        const container = document.getElementById('elections-container');
+        
+        if (elections.length === 0) {
+          container.innerHTML = '<div class="empty-state"><p>No elections found</p></div>';
+          return;
+        }
+
+        const table = document.createElement('table');
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Votes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${elections.map(election => `
+              <tr>
+                <td>
+                  <strong>${election.title}</strong>
+                  ${election.description ? `<br><small style="color: #718096;">${election.description}</small>` : ''}
+                </td>
+                <td>
+                  <span class="status-badge status-${election.status}">
+                    ${election.status.charAt(0).toUpperCase() + election.status.slice(1)}
+                  </span>
+                </td>
+                <td>${new Date(election.start_date).toLocaleString()}</td>
+                <td>${new Date(election.end_date).toLocaleString()}</td>
+                <td>${election.total_votes || 0}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button 
+                      class="btn btn-danger" 
+                      onclick="deleteElection(${election.id}, '${election.title}')"
+                      ${election.total_votes > 0 ? 'disabled title="Cannot delete election with votes"' : ''}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        `;
+        
+        container.innerHTML = '';
+        container.appendChild(table);
+      }
+
+      window.deleteElection = async function(electionId, electionTitle) {
+        if (!confirm(`Are you sure you want to delete the election "${electionTitle}"?\n\nThis action cannot be undone.`)) {
+          return;
+        }
+
+        try {
+          console.log('Deleting election:', electionId);
+          const response = await api.deleteElection(electionId);
+          console.log('Delete response:', response);
+          showMessage('Election deleted successfully', 'success');
+          loadElections(); // Reload the list
+        } catch (error) {
+          console.error('Error deleting election:', error);
+          showMessage(error.message || 'Error deleting election', 'error');
+        }
+      }
+
+      // Load elections when page loads
+      document.addEventListener('DOMContentLoaded', loadElections);
+    </script>
+  </body>
+</html>
