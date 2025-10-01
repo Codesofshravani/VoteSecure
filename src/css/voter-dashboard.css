@@ -277,27 +277,3 @@ body {
   color: #4a5568;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .header-content {
-    flex-direction: column;
-    gap: 15px;
-    text-align: center;
-  }
-  
-  .nav-menu {
-    gap: 20px;
-  }
-  
-  .main-content {
-    padding: 20px 15px;
-  }
-  
-  .page-title {
-    font-size: 2rem;
-  }
-  
-  .elections-grid {
-    grid-template-columns: 1fr;
-  }
-}

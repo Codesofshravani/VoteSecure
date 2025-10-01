@@ -27,6 +27,8 @@ body {
   animation: float 20s infinite linear;
 }
 
+
+
 .shape-1 { width: 80px; height: 80px; top: 20%; left: 10%; animation-delay: 0s; }
 .shape-2 { width: 120px; height: 120px; top: 60%; left: 80%; animation-delay: 5s; }
 .shape-3 { width: 60px; height: 60px; top: 80%; left: 20%; animation-delay: 10s; }
@@ -257,21 +259,3 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .page-container { flex-direction: column; }
-  .content-section { padding: 40px; text-align: center; }
-  .visual-section { padding: 20px; }
-  .hero-visual { width: 300px; height: 300px; }
-  .welcome-heading { font-size: 3.5rem; }
-  .features { position: static; justify-content: center; margin-top: 30px; }
-}
-
-@media (max-width: 768px) {
-  .content-section { padding: 20px; }
-  .welcome-heading { font-size: 2.8rem; }
-  .logo-text h1 { font-size: 2.5rem; }
-  .description { font-size: 1.1rem; }
-  .hero-visual { width: 250px; height: 250px; }
-  .visual-icon { font-size: 6rem; }
-}

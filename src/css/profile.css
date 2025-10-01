@@ -124,8 +124,4 @@ body {
   font-size: 14px;
 }
 
-/* Responsive */
-@media (max-width: 880px) {
-  .profile-grid { grid-template-columns: 1fr; }
-  .avatar { width: 120px; height: 120px; }
-}
+

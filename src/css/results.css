@@ -81,7 +81,4 @@ body {
 /* Footer note */
 .footer-note { margin-top:18px; color:#6b7280; font-size:13px; }
 
-/* Responsive */
-@media (max-width: 700px) {
-  .results-table th, .results-table td { font-size:13px; padding:8px; }
-}
+

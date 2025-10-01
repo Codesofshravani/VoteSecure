@@ -244,28 +244,13 @@ body {
   color: #667eea;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .auth-container {
-    grid-template-columns: 1fr;
-    margin: 20px;
-  }
-  
-  .info-section {
-    padding: 40px 30px;
-    text-align: center;
-  }
-  
-  .info-section h2 {
-    font-size: 2rem;
-  }
-  
-  .form-section {
-    padding: 40px 30px;
-  }
-  
-  .back-btn {
-    top: 20px;
-    left: 20px;
-  }
+.password-hint {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.8rem;
+  color: #718096;
+  font-style: italic;
 }
+
+
+

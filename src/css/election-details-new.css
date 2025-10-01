@@ -273,35 +273,3 @@ body {
   flex-shrink: 0;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .topbar-content {
-    flex-direction: column;
-    gap: 0.5rem;
-    text-align: center;
-    padding: 0.5rem;
-  }
-  
-  .card {
-    margin: 0.25rem;
-    padding: 0.75rem;
-    border-radius: 12px;
-  }
-  
-  .election-header h3 {
-    font-size: 1.5rem;
-  }
-  
-  .candidate-card label {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.75rem;
-  }
-  
-  .btn {
-    width: 100%;
-    padding: 0.75rem 1.5rem;
-    font-size: 0.9rem;
-  }
-}

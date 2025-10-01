@@ -201,7 +201,26 @@ ${candidates.join("\\n")}
           const startDate = document.getElementById("start-date").value;
           const endDate = document.getElementById("end-date").value;
 
-          if (!title || !startDate || !endDate) {
+          // Validate title is not empty or just dashes/spaces
+          if (!title || title === "-" || title.replace(/[-\s]/g, "") === "") {
+            alert(
+              "Please enter a valid election Value  (not just dashes or spaces)"
+            );
+            return;
+          }
+
+          // Validate description if provided
+          if (
+            description &&
+            (description === "-" || description.replace(/[-\s]/g, "") === "")
+          ) {
+            alert(
+              "Please enter a valid description or leave it empty (not just dashes or spaces)"
+            );
+            return;
+          }
+
+          if (!startDate || !endDate) {
             alert("Please fill in all required fields");
             return;
           }
@@ -226,12 +245,27 @@ ${candidates.join("\\n")}
             const name = inputs[0].value.trim();
             const desc = inputs[1].value.trim();
 
-            if (!name) {
-              alert("All candidates must have a name");
+            // Validate candidate name is not empty or just dashes/spaces
+            if (!name || name === "-" || name.replace(/[-\s]/g, "") === "") {
+              alert(
+                "All candidates must have a valid name (not just dashes or spaces)"
+              );
               return;
             }
 
-            candidates.push({ name, description: desc });
+            // Validate description if provided
+            if (desc && (desc === "-" || desc.replace(/[-\s]/g, "") === "")) {
+              alert(
+                "Please enter a valid candidate description or leave it empty (not just dashes or spaces)"
+              );
+              return;
+            }
+
+            // Only add description if it's not empty
+            candidates.push({
+              name,
+              description: desc || null,
+            });
           }
 
           if (candidates.length < 2) {

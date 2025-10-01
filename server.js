@@ -141,6 +141,22 @@ function authenticateToken(req, res, next) {
 
 // Routes
 
+// Password validation function
+function validatePassword(password) {
+  const minLength = 6;
+  const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+  
+  if (password.length < minLength) {
+    return "Password must be at least 6 characters long";
+  }
+  
+  if (!specialCharRegex.test(password)) {
+    return "Password must contain at least one special character";
+  }
+  
+  return null; // Valid password
+}
+
 // User Registration
 app.post('/api/register', async (req, res) => {
   try {
@@ -148,6 +164,12 @@ app.post('/api/register', async (req, res) => {
     
     if (!name || !email || !password || !role) {
       return res.status(400).json({ error: 'All fields are required' });
+    }
+    
+    // Validate password
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return res.status(400).json({ error: passwordError });
     }
     
     const connection = await mysql.createConnection(dbConfig);
@@ -260,8 +282,28 @@ app.post('/api/elections', authenticateToken, async (req, res) => {
     
     const { title, description, startDate, endDate, candidates } = req.body;
     
-    if (!title || !startDate || !endDate || !candidates || candidates.length === 0) {
-      return res.status(400).json({ error: 'All fields are required' });
+    // Validate title is not empty or just dashes/spaces
+    if (!title || title.trim() === "" || title.trim() === "-" || title.trim().replace(/[-\s]/g, "") === "") {
+      return res.status(400).json({ error: 'Valid election title is required' });
+    }
+    
+    // Validate description if provided
+    if (description && (description.trim() === "-" || description.trim().replace(/[-\s]/g, "") === "")) {
+      return res.status(400).json({ error: 'Valid description required or leave empty' });
+    }
+    
+    if (!startDate || !endDate || !candidates || candidates.length === 0) {
+      return res.status(400).json({ error: 'All required fields must be filled' });
+    }
+    
+    // Validate candidates
+    for (const candidate of candidates) {
+      if (!candidate.name || candidate.name.trim() === "" || candidate.name.trim() === "-" || candidate.name.trim().replace(/[-\s]/g, "") === "") {
+        return res.status(400).json({ error: 'All candidates must have valid names' });
+      }
+      if (candidate.description && (candidate.description.trim() === "-" || candidate.description.trim().replace(/[-\s]/g, "") === "")) {
+        return res.status(400).json({ error: 'Candidate descriptions must be valid or empty' });
+      }
     }
     
     const connection = await mysql.createConnection(dbConfig);
@@ -299,9 +341,11 @@ app.post('/api/elections', authenticateToken, async (req, res) => {
     // Insert candidates
     for (const candidate of candidates) {
       const candidateHash = generateBlockchainHash({ name: candidate.name, electionId });
+      // Only insert description if it's not empty or null
+      const description = candidate.description && candidate.description.trim() ? candidate.description.trim() : null;
       await connection.execute(
         'INSERT INTO candidates (election_id, name, description, blockchain_hash) VALUES (?, ?, ?, ?)',
-        [electionId, candidate.name, candidate.description || '', candidateHash]
+        [electionId, candidate.name, description, candidateHash]
       );
     }
     

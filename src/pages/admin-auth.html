@@ -108,13 +108,15 @@
                 <input 
                   type="password" 
                   id="register-password"
-                  placeholder="Create a strong password" 
+                  placeholder="Min 6 chars with symbol (!@#$%^&*)" 
                   required 
+                  minlength="6"
                 />
                 <button type="button" class="password-toggle" onclick="togglePassword('register-password')">
                   👁️
                 </button>
               </div>
+              <small class="password-hint">Password must be at least 6 characters and contain one special character</small>
             </div>
 
             <button type="submit" class="submit-btn">
@@ -162,6 +164,22 @@
         }
       });
 
+      // Password validation function
+      function validatePassword(password) {
+        const minLength = 6;
+        const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+        
+        if (password.length < minLength) {
+          return "Password must be at least 6 characters long";
+        }
+        
+        if (!specialCharRegex.test(password)) {
+          return "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)";
+        }
+        
+        return null; // Valid password
+      }
+
       // Admin Registration
       document.getElementById('register-form').addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -169,6 +187,13 @@
         const name = document.getElementById('register-name').value;
         const email = document.getElementById('register-email').value;
         const password = document.getElementById('register-password').value;
+        
+        // Validate password
+        const passwordError = validatePassword(password);
+        if (passwordError) {
+          showMessage(passwordError, 'error');
+          return;
+        }
         
         try {
           console.log('Attempting registration...');

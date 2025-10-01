@@ -218,26 +218,3 @@ body {
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .main-content {
-    padding: 20px 15px;
-  }
-  
-  .page-title {
-    font-size: 2rem;
-  }
-  
-  .election-form {
-    padding: 25px;
-  }
-  
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .candidate-item {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
